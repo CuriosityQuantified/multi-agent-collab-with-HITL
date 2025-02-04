@@ -7,6 +7,7 @@ from langchain.prompts import ChatPromptTemplate
 from langgraph.graph import StateGraph, END
 from langgraph.types import interrupt, Command
 from langgraph.checkpoint.memory import MemorySaver
+from helper_functions import save_conversation_to_csv
 
 # Load environment variables
 load_dotenv()
@@ -26,6 +27,7 @@ class AgentState(TypedDict):
     messages: List[str]
     phase: int
     iteration: int
+    csv_file: str  # Add csv_file to track the conversation log file
 
 def create_agent_prompt(agent_id: int) -> ChatPromptTemplate:
     """Create a prompt template for the specified agent."""
@@ -39,11 +41,12 @@ Provide your response, building upon previous messages."""
 
 def agent1(state: AgentState) -> AgentState:
     """Agent 1's response function."""
+    message_history = "\n".join(state["messages"])
     prompt = create_agent_prompt(1)
     response = llm.invoke(
         prompt.format_messages(
             agent_id=1,
-            message_history="\n".join(state["messages"])
+            message_history=message_history
         )
     )
     
@@ -52,19 +55,29 @@ def agent1(state: AgentState) -> AgentState:
     if content.startswith("Agent 1:"):
         content = content[len("Agent 1:"):].strip()
     
+    # Log the conversation
+    csv_file = save_conversation_to_csv(
+        agent_name="Agent 1",
+        output=content,
+        input_history=message_history,
+        csv_file=state.get("csv_file")
+    )
+    
     return {
         "messages": state["messages"] + [f"Agent 1: {content}"],
         "phase": state["phase"],
-        "iteration": state["iteration"] + 1
+        "iteration": state["iteration"] + 1,
+        "csv_file": csv_file
     }
 
 def agent2(state: AgentState) -> AgentState:
     """Agent 2's response function."""
+    message_history = "\n".join(state["messages"])
     prompt = create_agent_prompt(2)
     response = llm.invoke(
         prompt.format_messages(
             agent_id=2,
-            message_history="\n".join(state["messages"])
+            message_history=message_history
         )
     )
     
@@ -73,10 +86,19 @@ def agent2(state: AgentState) -> AgentState:
     if content.startswith("Agent 2:"):
         content = content[len("Agent 2:"):].strip()
     
+    # Log the conversation
+    csv_file = save_conversation_to_csv(
+        agent_name="Agent 2",
+        output=content,
+        input_history=message_history,
+        csv_file=state.get("csv_file")
+    )
+    
     return {
         "messages": state["messages"] + [f"Agent 2: {content}"],
         "phase": state["phase"],
-        "iteration": state["iteration"] + 1
+        "iteration": state["iteration"] + 1,
+        "csv_file": csv_file
     }
 
 def should_continue(state: AgentState) -> str:
@@ -91,6 +113,7 @@ def should_continue(state: AgentState) -> str:
 
 def human_feedback(state: AgentState) -> Command:
     """Get feedback from human and update state."""
+    message_history = "\n".join(state["messages"])
     feedback = interrupt("Need human feedback. Review the conversation and provide guidance.")
     
     if not feedback:
@@ -101,7 +124,8 @@ def human_feedback(state: AgentState) -> Command:
         update={
             "messages": state["messages"] + [f"Human: {feedback}"],
             "phase": state["phase"] + 1,
-            "iteration": 0
+            "iteration": 0,
+            "csv_file": state["csv_file"]
         }
     )
 
@@ -154,8 +178,19 @@ def main():
     initial_state: AgentState = {
         "messages": [f"User Query: {query}"],
         "phase": 1,
-        "iteration": 0
+        "iteration": 0,
+        "csv_file": None  # Will be set by first save_conversation_to_csv call
     }
+    
+    # Log the initial query
+    csv_file = save_conversation_to_csv(
+        agent_name="User",
+        output=query,
+        input_history="",
+        csv_file=None
+    )
+    initial_state["csv_file"] = csv_file
+    print(f"Conversation will be logged to: {csv_file}")
     
     # Create and run workflow
     workflow = create_workflow()
@@ -188,11 +223,21 @@ def main():
                             print("Ending conversation...")
                             return
                         
+                        # Log the human feedback
+                        message_history = "\n".join(state["messages"])
+                        csv_file = save_conversation_to_csv(
+                            agent_name="Human",
+                            output=feedback,
+                            input_history=message_history,
+                            csv_file=state["csv_file"]
+                        )
+                        
                         # Create new state with the feedback
                         state = {
                             "messages": state["messages"] + [f"Human: {feedback}"],
                             "phase": state["phase"] + 1,
-                            "iteration": 0
+                            "iteration": 0,  # Reset iteration count after feedback
+                            "csv_file": csv_file
                         }
                         # Resume the workflow with the feedback
                         state = Command(resume=feedback, update=state)
