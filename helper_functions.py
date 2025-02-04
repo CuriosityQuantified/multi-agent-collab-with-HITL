@@ -2,9 +2,56 @@ import csv
 import os
 import uuid
 from datetime import datetime
-from typing import Dict, Optional
+from typing import Dict, Optional, TypedDict, List
 import tiktoken
 import sys
+
+class AgentConfig(TypedDict):
+    name: str
+    system_prompt: str
+    temperature: float
+
+def create_agent(name: str, system_prompt: str, temperature: float = 0.7) -> AgentConfig:
+    """Create an agent configuration.
+    
+    Args:
+        name: Name of the agent
+        system_prompt: The system prompt defining the agent's role and behavior
+        temperature: Temperature setting for the LLM (default: 0.7)
+    
+    Returns:
+        AgentConfig: Configuration for the agent
+    """
+    return AgentConfig(
+        name=name,
+        system_prompt=system_prompt,
+        temperature=temperature
+    )
+
+def create_agent_prompt(agent_config: AgentConfig, message_history: List[str]) -> str:
+    """Create a prompt for an agent including system prompt and collaboration instructions.
+    
+    Args:
+        agent_config: Configuration for the agent
+        message_history: List of previous messages in the conversation
+    
+    Returns:
+        str: The complete prompt for the agent
+    """
+    base_prompt = f"""You are {agent_config['name']}.
+
+{agent_config['system_prompt']}
+
+You are collaborating with other agents to respond to user queries. Your role is to:
+1. Build upon previous responses
+2. Critically evaluate other agents' responses
+3. Provide high-quality, accurate information
+4. Stay focused on the user's original query
+
+Previous conversation:
+{message_history}"""
+    
+    return base_prompt
 
 def count_tokens(text: str, model: str = "gpt-4") -> int:
     """Count the number of tokens in a text string."""
