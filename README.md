@@ -1,8 +1,8 @@
-Below is a detailed description of the two‑agent collaboration loop built with human in the loop. The design incorporates:
+Below is a detailed description of the multi-agent collaboration loop built with human in the loop. The design incorporates:
 
 -  a "phase" variable in the state to track how many cycles (i.e., how many times human feedback has been provided)  
--  looping between two agents over a set number of iterations per cycle  
--  an interrupt (human‑in‑the‑loop) mechanism using Langgraph’s interrupt function  
+-  looping between multiple agents over a set number of iterations per cycle  
+-  an interrupt (human‑in‑the‑loop) mechanism using Langgraph's interrupt function  
 -  agents pausing for human feedback before further responses
 
 ---
@@ -18,20 +18,20 @@ The system is organized as a series of cycles. Each cycle consists of the follow
      - a constant MAX_ITERATIONS (e.g., 3) that sets how many agent message exchanges occur before waiting for human input
   
 2. **Agent Collaboration Loop (Within a Cycle)**  
-   - Start with the user’s initial input.  
+   - Start with the user's initial input.  
    - For MAX_ITERATIONS iterations, alternate the responding agent:
      - **Iteration 1:**  
-       - Send initial input to Agent 1.  
-       - Agent 1 produces the first message.  
+       - Send initial input to the first agent.  
+       - The agent produces the first message.  
      - **Iteration 2:**  
-       - Combine the user’s original query and Agent 1’s output, then send this full message history to Agent 2.  
-       - Agent 2 produces the second message.  
+       - Combine the user's original query and the first agent's output, then send this full message history to the next agent.  
+       - The next agent produces the second message.  
      - **Iteration 3, etc.:**  
-       - Continue by sending the complete message history (including previous agent messages) back to Agent 1 (or alternating if required) so it can respond.  
+       - Continue by sending the complete message history (including previous agent messages) back to the next agent (or alternating if required) so it can respond.  
    - At the end of MAX_ITERATIONS, the total message history is updated with all exchanges.
 
 3. **Human Feedback (Interrupt Stage)**  
-   - Use Langgraph’s interrupt function to pause the process and trigger the human-in-the-loop. The system waits here until a human response is provided. This interrupt acts as a conditional edge:
+   - Use Langgraph's interrupt function to pause the process and trigger the human-in-the-loop. The system waits here until a human response is provided. This interrupt acts as a conditional edge:
      - **If human feedback is provided:**  
        - Append the human feedback to the message history.  
        - Increment the phase variable by one (tracking how many cycles have received feedback).  
@@ -45,28 +45,36 @@ The system is organized as a series of cycles. Each cycle consists of the follow
 
 ---
 
+## Updated Features
+
+This project implements a dynamic multi-agent collaboration system with human-in-the-loop feedback. Key features include:
+
+- **Dynamic Agent Creation**: Agents are created dynamically with specific configurations, including name, system prompt, and temperature settings. This allows for flexible and scalable agent management.
+
+- **Enhanced Collaboration**: Agents collaborate by building upon previous responses, critically evaluating each other's outputs, and providing creative solutions. This ensures high-quality and diverse responses.
+
+- **Human Feedback Integration**: The system pauses for human feedback at specified intervals, allowing users to guide the conversation and provide additional context or corrections.
+
+- **Error Handling and Logging**: Comprehensive error handling and logging have been implemented to improve debugging and user experience.
+
+- **Environment Configuration**: The system uses environment variables for configuration, including API keys for accessing language models.
+
+## Usage Instructions
+
+To run the program, follow these steps:
+
+1. **Clone the Repository**: Ensure you have cloned the repository, including submodules.
+
+2. **Set Up Environment**: Create a `.env` file with the necessary environment variables, such as `OPENAI_API_KEY`.
+
+3. **Install Dependencies**: Use a virtual environment and install the required packages.
+
+4. **Run the Program**: Execute the `main.py` script to start the agent collaboration system.
+
+5. **Provide Feedback**: During execution, provide feedback when prompted to guide the conversation.
+
 ## Example Walkthrough
 
-Let’s use the MAX_ITERATIONS value of 3 as an example:
+The system operates in cycles, with each cycle consisting of agent interactions and human feedback. The process continues until no further feedback is provided, at which point the system terminates.
 
-1. **Cycle 1 (Phase = 1 at start):**  
-   - **Iteration 1:**  
-     - The system sends the initial user query to Agent 1.  
-     - Agent 1 responds (Message 1).  
-   - **Iteration 2:**  
-     - The state now has the initial query and Message 1. This message history is sent to Agent 2.  
-     - Agent 2 responds (Message 2).  
-   - **Iteration 3:**  
-     - The state now contains the initial query, Message 1, and Message 2. This complete history is sent again to Agent 1.  
-     - Agent 1 responds (Message 3).  
-   - **Human Feedback Interrupt:**  
-     - Now, the system has a total of 4 messages (initial + 3 agent messages).  
-     - Langgraph’s interrupt function is called, pausing the agents and waiting for user feedback.
-
-2. **After Human Feedback:**  
-   - If human feedback is provided (Message 4), it is added to the state and the phase variable is incremented to 2.  
-   - The next cycle begins using the new full message history (initial query, Message 1, Message 2, Message 3, and human feedback Message 4).  
-   - The agents then continue with the 3‑iteration loop as before, using the complete accumulated messages.
-
-3. **Termination:**  
-   - If at any point the human provides no feedback when prompted, the conditional edge leads to termination, and the program ends without further agent interactions.
+For more detailed information, refer to the sections above describing the system structure and example walkthrough.
