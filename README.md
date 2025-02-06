@@ -1,72 +1,135 @@
-Below is a detailed description of the two‑agent collaboration loop built with human in the loop. The design incorporates:
+# Multi-Agent Collaboration System with Human-in-the-Loop
 
--  a "phase" variable in the state to track how many cycles (i.e., how many times human feedback has been provided)  
--  looping between two agents over a set number of iterations per cycle  
--  an interrupt (human‑in‑the‑loop) mechanism using Langgraph’s interrupt function  
--  agents pausing for human feedback before further responses
+A dynamic multi-agent collaboration system that enables structured discussions and decision-making with human oversight. The system features multiple specialized agents working together to solve problems while maintaining clear communication and reaching consensus through a natural discussion process.
 
----
+## Current Functionality
 
-## Overall System Structure
+### 1. Dynamic Agent System
+- Support for multiple specialized agents with different roles and expertise
+- Configurable agent parameters (temperature, system prompts)
+- Natural turn-taking and discussion flow
+- Prevention of role-playing and cross-agent impersonation
 
-The system is organized as a series of cycles. Each cycle consists of the following steps:
+### 2. Structured Collaboration Process
+1. **Discussion Phase**
+   - Natural, flowing discussion between agents
+   - Building upon previous contributions
+   - Sharing expertise and insights
+   - Identifying potential issues and improvements
+   - Focus on substantive content
 
-1. **Initialization**  
-   - Create a global state that includes:  
-     - a messages list that holds every message exchanged (from the initial query, through agent responses and human feedback)  
-     - a phase variable initially set to 1 (representing that no human feedback has yet been provided)  
-     - a constant MAX_ITERATIONS (e.g., 3) that sets how many agent message exchanges occur before waiting for human input
-  
-2. **Agent Collaboration Loop (Within a Cycle)**  
-   - Start with the user’s initial input.  
-   - For MAX_ITERATIONS iterations, alternate the responding agent:
-     - **Iteration 1:**  
-       - Send initial input to Agent 1.  
-       - Agent 1 produces the first message.  
-     - **Iteration 2:**  
-       - Combine the user’s original query and Agent 1’s output, then send this full message history to Agent 2.  
-       - Agent 2 produces the second message.  
-     - **Iteration 3, etc.:**  
-       - Continue by sending the complete message history (including previous agent messages) back to Agent 1 (or alternating if required) so it can respond.  
-   - At the end of MAX_ITERATIONS, the total message history is updated with all exchanges.
+2. **Consensus Phase**
+   - Thorough analysis before voting
+   - Independent decision-making
+   - Clear voting mechanism
+   - Prevention of premature consensus
+   - Required justification for decisions
 
-3. **Human Feedback (Interrupt Stage)**  
-   - Use Langgraph’s interrupt function to pause the process and trigger the human-in-the-loop. The system waits here until a human response is provided. This interrupt acts as a conditional edge:
-     - **If human feedback is provided:**  
-       - Append the human feedback to the message history.  
-       - Increment the phase variable by one (tracking how many cycles have received feedback).  
-     - **If no human feedback is given:**  
-       - End the program immediately.  
+3. **Final Answer Phase**
+   - Structured final answer format
+   - Validation of format and completeness
+   - Clear section organization
+   - Implementation details and considerations
+   - Practical examples
 
-4. **Next Cycle**  
-   - With human feedback integrated, the agent collaboration loop is restarted using the complete message history.  
-   - The cycle will follow the same MAX_ITERATIONS steps, now starting a new phase (as tracked by the incremented phase variable).  
-   - This loop continues until the human does not provide any feedback during an interrupt, at which point the system terminates.
+### 3. Human-in-the-Loop Features
+- Regular checkpoints for human feedback
+- Ability to guide the discussion
+- Override capabilities
+- Progress tracking and phase management
+- Conversation logging and monitoring
 
----
+### 4. Quality Control
+- Message validation system
+- Format enforcement
+- Role-playing prevention
+- Consensus verification
+- Final answer validation
 
-## Example Walkthrough
+### 5. Technical Features
+- Error handling and recovery
+- Conversation logging to CSV
+- Token counting and management
+- Environment variable configuration
+- Debug mode support
 
-Let’s use the MAX_ITERATIONS value of 3 as an example:
+## Future Enhancements
 
-1. **Cycle 1 (Phase = 1 at start):**  
-   - **Iteration 1:**  
-     - The system sends the initial user query to Agent 1.  
-     - Agent 1 responds (Message 1).  
-   - **Iteration 2:**  
-     - The state now has the initial query and Message 1. This message history is sent to Agent 2.  
-     - Agent 2 responds (Message 2).  
-   - **Iteration 3:**  
-     - The state now contains the initial query, Message 1, and Message 2. This complete history is sent again to Agent 1.  
-     - Agent 1 responds (Message 3).  
-   - **Human Feedback Interrupt:**  
-     - Now, the system has a total of 4 messages (initial + 3 agent messages).  
-     - Langgraph’s interrupt function is called, pausing the agents and waiting for user feedback.
+### 1. Advanced Agent Capabilities
+- [ ] Dynamic agent creation based on task requirements
+- [ ] Learning from previous interactions
+- [ ] Adaptive temperature settings
+- [ ] Specialized agent roles for different domains
+- [ ] Cross-domain knowledge sharing
 
-2. **After Human Feedback:**  
-   - If human feedback is provided (Message 4), it is added to the state and the phase variable is incremented to 2.  
-   - The next cycle begins using the new full message history (initial query, Message 1, Message 2, Message 3, and human feedback Message 4).  
-   - The agents then continue with the 3‑iteration loop as before, using the complete accumulated messages.
+### 2. Enhanced Collaboration
+- [ ] Parallel discussion threads
+- [ ] Topic clustering and organization
+- [ ] Automatic summarization of discussions
+- [ ] Conflict resolution mechanisms
+- [ ] Priority-based contribution system
 
-3. **Termination:**  
-   - If at any point the human provides no feedback when prompted, the conditional edge leads to termination, and the program ends without further agent interactions.
+### 3. Improved Human Integration
+- [ ] Real-time feedback mechanisms
+- [ ] Interactive visualization of discussion flow
+- [ ] Customizable intervention points
+- [ ] Progress metrics and analytics
+- [ ] User preference learning
+
+### 4. Quality Improvements
+- [ ] Advanced validation using multiple LLMs
+- [ ] Semantic similarity checking
+- [ ] Fact verification integration
+- [ ] Source citation requirements
+- [ ] Bias detection and mitigation
+
+### 5. Technical Enhancements
+- [ ] Web interface for interaction
+- [ ] API endpoints for integration
+- [ ] Enhanced logging and analytics
+- [ ] Performance optimization
+- [ ] Scalability improvements
+
+### 6. Knowledge Management
+- [ ] Discussion history database
+- [ ] Pattern recognition in solutions
+- [ ] Best practices library
+- [ ] Solution templates
+- [ ] Integration with external knowledge bases
+
+## Getting Started
+
+1. Clone the repository:
+```bash
+git clone https://github.com/CuriosityQuantified/multi-agent-collab-with-HITL.git
+```
+
+2. Create and activate a virtual environment:
+```bash
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scriptsctivate
+```
+
+3. Install dependencies:
+```bash
+pip install -r requirements.txt
+```
+
+4. Set up environment variables:
+```bash
+cp .env.example .env
+# Edit .env with your API keys and configuration
+```
+
+5. Run the system:
+```bash
+python main.py
+```
+
+## Contributing
+
+Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on how to contribute to this project.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
