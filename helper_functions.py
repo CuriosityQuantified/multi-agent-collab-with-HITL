@@ -153,7 +153,9 @@ Guidelines for Natural Collaboration:
      * Consider if all aspects have been properly addressed
      * Evaluate completeness and practicality
      * If you find gaps: Point them out and continue discussion
-     * If complete: End with "I vote to submit" on its own line
+     * If complete: Provide your detailed analysis and reasoning
+     * End with "I vote to submit" on its own line
+     * NEVER output only "I vote to submit" without analysis
    - If others have voted:
      * First conduct your own independent analysis
      * Make your decision based on your analysis
@@ -172,8 +174,20 @@ Guidelines for Natural Collaboration:
      * End with "[FINAL_ANSWER]" on its own line
      * No explanations or commentary before/after
 
+4. Handling User Feedback
+   - When user provides feedback:
+     * ALWAYS restart the entire process from the discussion phase
+     * Consider and address ALL points in the feedback
+     * Do NOT simply repeat previous responses
+     * Build upon previous discussion while incorporating feedback
+     * Follow the same phases: discussion -> consensus -> final answer
+     * Each feedback round is a fresh opportunity to improve
+     * Previous votes are cleared - need new consensus
+     * Previous final answers are discarded - need new final answer
+
 Remember:
 - Focus on natural discussion first, then voting, then final answer
+- You do not need to wait for other agents unless you need specific input
 - You do not need to vote at the end of every message, only when YOU believe the solution is complete
 - Build upon actual team messages
 - Stay within your role and expertise
@@ -184,7 +198,9 @@ Remember:
 - Skip pleasantries and focus on substance
 - Avoid meta-commentary about the conversation
 - Don't acknowledge or thank other agents
-- If you're the last to vote, you MUST provide the final answer'''
+- If you're the last to vote, you MUST provide the final answer
+- NEVER output only "I vote to submit" without analysis
+- After user feedback, ALWAYS restart the process'''
 
 def create_completion_instructions() -> str:
     """Create instructions for agents about using the completion marker.
@@ -193,7 +209,7 @@ def create_completion_instructions() -> str:
         str: Instructions about how and when to use the FINAL_ANSWER_MARKER
     """
     return '''
-Important: Collaboration happens in three distinct phases:
+Important: Collaboration happens in distinct phases:
 
 1. Discussion Phase:
    - Engage in natural discussion about the problem
@@ -204,6 +220,8 @@ Important: Collaboration happens in three distinct phases:
    - Consider both obvious and non-obvious aspects
    - Think through implications and dependencies
    - Do not use AGREE/DISAGREE during this phase
+   - Do NOT wait for other agents unless you need specific input
+   - Proceed with voting if you believe the solution is complete
 
 2. Voting Phase (only after thorough discussion):
    - Once the solution feels complete
@@ -215,10 +233,10 @@ Important: Collaboration happens in three distinct phases:
      * Assess implementation details
      * Consider edge cases and challenges
    - After your analysis, end your message with:
-     "AGREE: The current solution is complete because..." or
-     "DISAGREE: The solution needs the following improvements..."
+     "I vote to submit" on its own line
+   - NEVER output only "I vote to submit" without analysis
    - Do NOT include a final answer in your message
-   - Wait for ALL other agents to vote
+   - Do NOT wait for other agents unless you need specific input
 
 3. Final Answer Phase (only after unanimous agreement):
    - Can ONLY begin after ALL agents have voted AGREE
@@ -238,6 +256,24 @@ Important: Collaboration happens in three distinct phases:
      * End with [FINAL_ANSWER] on a new line
      * NO explanations or commentary
 
+4. Handling User Feedback:
+   - When user provides ANY feedback:
+     * ALWAYS restart from discussion phase
+     * Consider and address ALL feedback points
+     * Do NOT simply repeat previous responses
+     * Build upon previous discussion while incorporating feedback
+     * Follow all phases again: discussion -> voting -> final answer
+     * Each feedback round is a fresh opportunity to improve
+     * Previous votes are cleared - need new consensus
+     * Previous final answers are discarded - need new final answer
+   - If user asks "are you sure?":
+     * This is feedback requesting deeper analysis
+     * Restart from discussion phase
+     * Analyze the current solution more thoroughly
+     * Identify potential improvements
+     * Consider edge cases and limitations
+     * Follow the full process again
+
 Remember:
 - Focus on natural discussion first
 - Only vote after thorough collaboration
@@ -247,7 +283,10 @@ Remember:
 - Prioritize depth and quality in your responses
 - Be specific and detailed in your suggestions
 - Consider practical implementation aspects
-- Always put your AGREE/DISAGREE vote at the END of your message
+- Always provide detailed analysis before voting
+- NEVER output only "I vote to submit" without analysis
+- Do NOT wait for other agents unless you need specific input
+- After ANY user feedback, ALWAYS restart the process
 
 Example of natural discussion:
 "The language learning app should include an adaptive learning system with the following components:
@@ -268,7 +307,7 @@ Example voting response (only after discussion):
 
 The implementation plan includes all necessary components for effective language learning, with clear technical specifications and integration points. The system architecture supports scalability and maintainability.
 
-AGREE: The current solution is complete because it incorporates comprehensive learning features, including detailed implementation plans for personalization, engagement mechanisms, and progress tracking. The solution addresses both technical requirements and user experience considerations."
+I vote to submit"
 
 Example final answer (only after ALL agents have voted AGREE):
 ```
